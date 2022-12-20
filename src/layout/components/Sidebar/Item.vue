@@ -1,3 +1,4 @@
+<!--item 组件通过定义 render 函数完成组件渲染-->
 <script>
 export default {
   name: 'MenuItem',

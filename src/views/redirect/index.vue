@@ -1,3 +1,4 @@
+<!--重定向组件-->
 <script>
 export default {
   created() {

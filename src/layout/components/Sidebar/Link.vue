@@ -1,3 +1,4 @@
+<!-- app-link 是一个动态组件，通过解析 to 参数，如果包含 http 前缀则变成一个 a 标签，否则变成一个 router-link组件-->
 <template>
   <component :is="type" v-bind="linkProps(to)">
     <slot />

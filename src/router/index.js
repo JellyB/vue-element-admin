@@ -7,12 +7,14 @@ Vue.use(Router)
 import Layout from '@/layout'
 
 export const constantRoutes = [
+  // 重定向组件配置了动态路由
   {
     path: '/redirect',
     component: Layout,
     hidden: true,
     children: [
       {
+        // 标识匹配零个或多个路由
         path: '/redirect/:path(.*)',
         component: () => import('@/views/redirect/index')
       }
@@ -60,7 +62,7 @@ export const asyncRoutes = [
     component: Layout,
     children: [
       {
-        path: 'book/create',
+        path: '/create',
         component: () => import('@/views/book/create'),
         name: '图书管理',
         meta: { title: '添加图书', icon: 'edit', roles: ['admin'] }
