@@ -1,6 +1,8 @@
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
+      <!--el-breadcrumb-item 内做了一个判断，如果是最后一个元素或者路由的 redirect 属性指定为 noRedirect 则不会生成链接-->
+      <!-- 否则将使用 a 标签生成链接，但是这里使用了 @click.prevent 阻止了默认 a 标签事件触发，而使用自定义的 handleLink 方法处理路由跳转，handleLink 方法源码如下：-->
       <el-breadcrumb-item v-for="(item,index) in levelList" :key="item.path">
         <span v-if="item.redirect==='noRedirect'||index==levelList.length-1" class="no-redirect">{{ item.meta.title }}</span>
         <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
@@ -32,14 +34,14 @@ export default {
   },
   methods: {
     getBreadcrumb() {
-      // only show routes with meta.title
+      // 获取 this.$route.matched，并过滤其中不包含 item.meta.title 的项，生成新的面包屑导航数组 matched
       let matched = this.$route.matched.filter(item => item.meta && item.meta.title)
       const first = matched[0]
-
+      // 判断 matched 第一项是否为 dashboard，如果不是，则添加 dashboard 为面包屑导航第一项
       if (!this.isDashboard(first)) {
         matched = [{ path: '/dashboard', meta: { title: 'Dashboard' }}].concat(matched)
       }
-
+      // 再次过滤 matched 中 item.meta.title 为空的项和 item.meta.breadcrumb 为 false 的项
       this.levelList = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb !== false)
     },
     isDashboard(route) {
@@ -49,6 +51,8 @@ export default {
       }
       return name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase()
     },
+
+    // 这里的 pathCompile 用于解决动态路由的匹配问题
     pathCompile(path) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
       const { params } = this.$route

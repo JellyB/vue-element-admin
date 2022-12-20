@@ -1,5 +1,16 @@
 <template>
   <el-row class="tac">
+    <el-col>
+      <!--el-breadcrumb：面包屑导航容器 separator 控制面包屑导航文本中分割线-->
+      <el-breadcrumb separator="/">
+        <!--el-breadcrumb-item：面包屑子项目，可以使用 to 属性切换路由，slot 中可以包含 a 标签来跳转到外链-->
+        <!--to 属性切换路由是动态替换 App.vue 中的路由内容，而 a 标签切换路由会刷新页面-->
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item><a href="/">活动管理</a></el-breadcrumb-item>
+        <el-breadcrumb-item>活动列表</el-breadcrumb-item>
+        <el-breadcrumb-item>活动详情</el-breadcrumb-item>
+      </el-breadcrumb>
+    </el-col>
     <el-col :span="12">
       <el-menu
         default-active="1-1"
