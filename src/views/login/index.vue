@@ -3,7 +3,7 @@
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">小慕读书管理后台</h3>
+        <h3 class="title">小慕读书</h3>
       </div>
 
       <el-form-item prop="username">
@@ -20,7 +20,9 @@
           autocomplete="on"
         />
       </el-form-item>
-
+      <!--当用户打开大小写时，会进行提示-->
+      <!--这里绑定 @keyup 事件时需要添加 .native 修饰符，这是因为我们的事件绑定在 el-input 组件上，
+      所以如果不添加 .native 修饰符，事件将无法绑定到原生的 input 标签上-->
       <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
         <el-form-item prop="password">
           <span class="svg-container">
@@ -60,21 +62,20 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
 
 export default {
   name: 'Login',
   data() {
     const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
+      if (!value || value.length === 0) {
         callback(new Error('请输入正确的用户名'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('密码不能少于6位'))
+      if (value.length < 4) {
+        callback(new Error('密码不能少于4位'))
       } else {
         callback()
       }
@@ -82,7 +83,7 @@ export default {
     return {
       loginForm: {
         username: 'admin',
-        password: '111111'
+        password: '123456'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -111,6 +112,7 @@ export default {
     }
   },
   mounted() {
+    // 检查用户名或密码是否为空，如果发现为空，则自动聚焦
     if (this.loginForm.username === '') {
       this.$refs.username.focus()
     } else if (this.loginForm.password === '') {
@@ -118,6 +120,7 @@ export default {
     }
   },
   methods: {
+    // 主要用途是监听用户键盘输入
     checkCapslock(e) {
       const { key } = e
       this.capsTooltip = key && key.length === 1 && (key >= 'A' && key <= 'Z')
@@ -128,18 +131,22 @@ export default {
       } else {
         this.passwordType = 'password'
       }
+      // 切换密码显示状态后，自动聚焦 password 输入框
       this.$nextTick(() => {
         this.$refs.password.focus()
       })
     },
     handleLogin() {
+      // 调用 el-form 的 validate 方法对 rules 进行验证；
       this.$refs.loginForm.validate(valid => {
         if (valid) {
+          // 如果验证通过，则会调用 vuex 的 user/login action 进行登录验证；
           this.loading = true
+          // 由于 vuex 中的 user 指定了 namespaced 为 true，所以 dispatch 时需要加上 namespace，否则将无法调用 vuex 中的 action
           this.$store.dispatch('user/login', this.loginForm)
           // 登录成功后
             .then(() => {
-              // 完成重定向逻辑为
+              // 登录验证通过后，会重定向到 redirect 路由，如果 redirect 路由不存在，则直接重定向到 / 路由
               this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
               this.loading = false
             })

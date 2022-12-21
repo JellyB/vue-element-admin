@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -33,12 +33,15 @@ const actions = {
   login({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
+      // user/login 方法调用了 login API，传入 username 和 password 参数
       login({ username: username.trim(), password: password }).then(response => {
+        // 请求成功后会从 response 中获取 token，然后将 token 保存到 Cookie 中，之后返回
         const { data } = response
         commit('SET_TOKEN', data.token)
         setToken(data.token)
         resolve()
       }).catch(error => {
+        // 如果请求失败，将调用 reject 方法，交由我们自定义的 request 模块来处理异常
         reject(error)
       })
     })
@@ -75,20 +78,16 @@ const actions = {
   // user logout
   logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
+      try {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
         removeToken()
         resetRouter()
-
-        // reset visited views and cached views
-        // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
         dispatch('tagsView/delAllViews', null, { root: true })
-
         resolve()
-      }).catch(error => {
-        reject(error)
-      })
+      } catch (e) {
+        reject(e)
+      }
     })
   },
 
@@ -124,6 +123,7 @@ const actions = {
 }
 
 export default {
+  // 访问需要添加 /user
   namespaced: true,
   state,
   mutations,
