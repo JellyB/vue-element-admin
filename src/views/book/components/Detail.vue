@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="postForm" :v-model="postForm">
+  <el-form ref="postForm" :model="postForm" :rules="rules">
     <sticky :class-name="'sub-navbar'">
       <el-button v-if="isEdit" @click="showGuide">显示帮助</el-button>
       <el-button
@@ -27,7 +27,7 @@
           </el-form-item>
           <el-row>
             <el-col :span="12">
-              <el-form-item label="作者：" :label-width="labelWidth">
+              <el-form-item prop="author" label="作者：" :label-width="labelWidth">
                 <el-input
                   v-model="postForm.author"
                   placeholder="作者"
@@ -35,7 +35,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="出版社：" :label-width="labelWidth">
+              <el-form-item prop="publisher" label="出版社：" :label-width="labelWidth">
                 <el-input
                   v-model="postForm.publisher"
                   placeholder="出版社"
@@ -46,7 +46,7 @@
 
           <el-row>
             <el-col :span="12">
-              <el-form-item label="语言：" :label-width="labelWidth">
+              <el-form-item prop="language" label="语言：" :label-width="labelWidth">
                 <el-input
                   v-model="postForm.language"
                   placeholder="语言"
@@ -147,6 +147,30 @@ import Sticky from '../../../components/Sticky/index'
 import EbookUpload from '../../../components/EbookUpload/index'
 import MDinput from '../../../components/MDinput/index'
 import Warning from '../components/Warning'
+import { createBook } from '../../../api/book'
+
+const defaultForm = {
+  title: '',
+  author: '',
+  publisher: '',
+  language: '',
+  rootFile: '',
+  cover: '',
+  url: '',
+  originalName: '',
+  fileName: '',
+  coverPath: '',
+  filePath: '',
+  unzipPath: ''
+}
+
+const fields = {
+  title: '书名',
+  author: '作者',
+  publisher: '出版社',
+  language: '语言'
+}
+
 export default {
   components: {
     Sticky,
@@ -158,14 +182,27 @@ export default {
     isEdit: Boolean
   },
   data() {
+    const validateRequire = (rule, value, callback) => {
+      console.log(rule, value)
+      if (value.length === 0) {
+        callback(new Error(fields[rule.field] + '必须填写'))
+      } else {
+        callback()
+      }
+    }
     return {
       loading: false,
-      postForm: {
-
-      },
-      contentsTree: [],
+      postForm: {},
       fileList: [],
-      labelWidth: '120px'
+      labelWidth: '120px',
+      contentsTree: [],
+      rules: {
+        title: [{ validator: validateRequire }],
+        author: [{ validator: validateRequire }],
+        publisher: [{ validator: validateRequire }],
+        language: [{ validator: validateRequire }]
+      }
+
     }
   },
   methods: {
@@ -173,6 +210,10 @@ export default {
       if (data.text) {
         window.open(data.text)
       }
+    },
+    setDefault() {
+      this.postForm = Object.assign({}, defaultForm)
+      this.contentsTree = []
     },
     setData(data) {
       const {
@@ -214,17 +255,35 @@ export default {
       console.log('show guide....')
     },
     submitForm() {
-      this.loading = true
-      setTimeout(() => {
-        this.loading = false
-      }, 1000)
+      if (!this.loading) {
+        this.loading = true
+        this.$refs.postForm.validate((valid, fields) => {
+          if (valid) {
+            console.log('-----', book)
+            const book = Object.assign({}, this.postForm)
+            delete book.contents
+            delete book.contentsTree
+            if (!this.isEdit) {
+              createBook(book)
+            } else {
+              // updateBook(book)
+            }
+          } else {
+            const message = fields[Object.keys(fields)[0]][0].message
+            this.$message({
+              message: message, type: 'error'
+            })
+            this.loading = false
+          }
+        })
+      }
     },
     onUploadSuccess(data) {
       console.log('onUploadSuccess', data)
       this.setData(data)
     },
     onUploadRemove() {
-      console.log('onUploadRemove')
+      this.setDefault()
     }
   }
 }
